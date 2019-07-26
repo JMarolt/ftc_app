@@ -36,6 +36,7 @@ package org.firstinspires.ftc.teamcode.section2;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @TeleOp(name="Basic: CJ", group="Iterative Opmode")
     public class TeleopMoveMode extends OpMode {
@@ -58,8 +59,16 @@ import com.qualcomm.robotcore.hardware.DcMotor;
             // while the power of the wheels is 0, brake
             leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            telemetry.addData("Status", "Initialized");
 
+            leftRear = hardwareMap.get(DcMotor.class, "leftRear");
+            rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+            leftRear.setDirection(DcMotor.Direction.FORWARD);
+            rightFront.setDirection(DcMotor.Direction.REVERSE);
+            // while the power of the wheels is 0, brake
+            leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+            telemetry.addData("Status", "Initialized");
 
         }
 
@@ -67,9 +76,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
             double drive;
             double driveRL;
-            // This driving mode uses up on the d-pad to go forward, and down on the d-pad to go backward. The ‘drive’ variable is set based on the corresponding inputs on the d-pad.
 
-
+            //check for up and down DPAD
             if (gamepad1.dpad_up) {
                 drive = 1.0;
             } else if (gamepad1.dpad_down) {
@@ -78,6 +86,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
                 drive = 0.0;
             }
 
+            //check for left and right DPAD
             if (gamepad1.dpad_right) {
                 driveRL = 1.0;
             } else if (gamepad1.dpad_left) {
@@ -85,6 +94,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
             } else {
                 driveRL = 0.0;
             }
+
+
 
             // Send calculated power to wheels
             leftFront.setPower(drive);
