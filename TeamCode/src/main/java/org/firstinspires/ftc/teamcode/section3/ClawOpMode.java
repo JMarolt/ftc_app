@@ -83,39 +83,9 @@ public class ClawOpMode extends OpMode {
         }
 
 
-/*
-        double drive;
-        double driveRL;
-
-        //check for up and down DPAD
-        if (gamepad1.dpad_up) {
-            drive = 1.0;
-        } else if (gamepad1.dpad_down) {
-            drive = -1.0;
-        } else {
-            drive = 0.0;
-        }
-
-        //check for left and right DPAD
-        if (gamepad1.dpad_right) {
-            driveRL = 1.0;
-        } else if (gamepad1.dpad_left) {
-            driveRL = -1.0;
-        } else {
-            driveRL = 0.0;
-        }
-
-
-
-        // Send calculated power to wheels
-        leftFront.setPower(drive);
-        rightRear.setPower(drive);
-        rightFront.setPower(driveRL);
-        leftRear.setPower(driveRL);
-*/
-
         float jX = gamepad1.left_stick_x;
         float jY = -(gamepad1.left_stick_y);
+        float sX = gamepad1.right_stick_x;
 
         leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -127,10 +97,14 @@ public class ClawOpMode extends OpMode {
         rightFront.setDirection(DcMotor.Direction.FORWARD);
         rightRear.setDirection(DcMotor.Direction.FORWARD);
 
-        rightRear.setPower(jX/4);
-        rightFront.setPower(-(jX)/4);
-        leftFront.setPower(jX/4);
-        leftRear.setPower(-(jX)/4);
+        rightRear.setPower((jY/6 + jX/6) - (sX/6));
+        rightFront.setPower((jY/6 - (jX/6)) - (sX/6));
+        leftFront.setPower((jY/6 + jX/6) + (sX/6));
+        leftRear.setPower((jY/6 - (jX/6)) + (sX/6));
+
+
+
+
 
 
 

@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.section1;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -36,13 +37,16 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorDigitalTouch;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "Basic: League Test Drive", group = "Iterative Opmode")
+@Disabled
 public class BasicTestLeagueThing extends OpMode {
 
     // Declare OpMode members.
@@ -53,6 +57,7 @@ public class BasicTestLeagueThing extends OpMode {
 
     private Servo clawServo = null;
     private CRServo armMotor = null;
+    private DistanceSensor sensorRange = null;
 
     private DigitalChannel armStop = null;
 
@@ -85,6 +90,9 @@ public class BasicTestLeagueThing extends OpMode {
         armStop = hardwareMap.get(DigitalChannel.class, "armStop");
         armStop.setMode(DigitalChannel.Mode.INPUT);
 
+        // REV Robotics IR 2m Sensor
+        sensorRange = hardwareMap.get(DistanceSensor.class, "sensor_range");
+
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         leftFront.setDirection(DcMotor.Direction.REVERSE);
@@ -108,6 +116,7 @@ public class BasicTestLeagueThing extends OpMode {
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
+        telemetry.addData("Claw position", "%4.2f", clawPos);
     }
 
     /*
@@ -133,6 +142,12 @@ public class BasicTestLeagueThing extends OpMode {
         // Setup a variable for each side of the robot
         double leftPower;
         double rightPower;
+        double targetRange;
+        final double MAX_RANGE = 36.0;
+        final double MID_SPEED = 0.25;
+        final double MID_RANGE = 12.0;
+        final double MIN_SPEED = 0.125;
+        final double MIN_RANGE = 1.0;
 
         // This driving mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
@@ -151,6 +166,22 @@ public class BasicTestLeagueThing extends OpMode {
         double driveX = gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
 
+        // Get the range to target using the distance sensor.  Allow movement forward only if there
+        // is no obstacles with 1ft of the robot
+        targetRange = sensorRange.getDistance(DistanceUnit.INCH);
+        telemetry.addData("Distance to obstacle: ", "%4.2f", targetRange);
+        if (driveY > 0){
+            if (targetRange <= MIN_RANGE){
+                driveY = 0;
+            }
+            else if (targetRange <= MID_RANGE){
+                driveY = MIN_SPEED;
+            }
+            else if (targetRange <= MAX_RANGE){
+                driveY = MID_SPEED;
+            }
+        }
+
         // ^ condensed
         double leftFrontPower = Range.clip((driveY + driveX) + turn, -1.0, 1.0);
         double leftRearPower = Range.clip((driveY - driveX) + turn, -1.0, 1.0);
@@ -165,11 +196,13 @@ public class BasicTestLeagueThing extends OpMode {
         // controlling the claw
 
         if (gamepad1.dpad_right) {
-            clawPos = Range.clip(clawPos + clawIncrement, -1.0, 1.0);
+            clawPos += clawIncrement;
         } else if (gamepad1.dpad_left) {
-            clawPos = Range.clip(clawPos - clawIncrement, -1.0, 1.0);
+            clawPos -= clawIncrement;
         }
+        clawPos = Range.clip(clawPos, 0.0, 1.0);
         clawServo.setPosition(clawPos);
+        telemetry.addData("Claw position", "%4.2f", clawPos);
 
         // control arm
         if (gamepad1.dpad_up) {
